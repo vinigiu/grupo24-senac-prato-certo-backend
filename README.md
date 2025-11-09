@@ -92,6 +92,6 @@ sudo docker logs -f prato_certo_app
 
 Este projeto é de uso acadêmico, desenvolvido para o curso de Análise e Desenvolvimento de Sistemas - SENAC.
 
-## 👨‍💻 Autor
+## 👨‍💻 Autores
 
 Vinícius Giuseppe Guida Lucena de Oliveira
