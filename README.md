@@ -79,13 +79,14 @@ sudo docker logs -f prato_certo_app
 
 ## 📡 Endpoints principais (exemplos)
 
-Método	Rota	        Descrição
-POST    /login          Realiza authenticação do usuário
-GET	    /recipes	    Lista todas as receitas
-POST	/recipes	    Cria uma nova receita
-GET	    /recipes/:id	Retorna detalhes de uma receita
-PUT	    /recipes/:id	Atualiza uma receita
-DELETE	/recipes/:id	Remove uma receita
+| Método | Rota         | Descrição                        |
+|:-------|:------------:|---------------------------------:|
+| POST   | /login       | Realiza authenticação do usuário |
+| GET	 | /recipes	    | Lista todas as receitas          |
+| POST   | /recipes	    | Cria uma nova receita            |
+| GET    | /recipes/:id | Retorna detalhes de uma receita  |
+| PUT	 | /recipes/:id	| Atualiza uma receita             |
+| DELETE | /recipes/:id	| Remove uma receita               |
 
 ## 🪪 Licença
 
