@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Recipe } from './entities/recipe.entity';
 import { Difficulty } from 'src/database/entities/difficulty.entity';
+import { CreateRecipeDto } from './dto/create-recipe.dto';
+import { UpdateRecipeDto } from './dto/update-recipe.dto';
 
 @Injectable()
 export class RecipesService {
@@ -13,8 +15,8 @@ export class RecipesService {
     private difficultyRepository: Repository<Difficulty>,
   ) {}
 
-  async create(recipeData: Partial<Recipe>): Promise<Recipe> {
-    if (!recipeData.difficulty || !recipeData.difficulty.id) {
+  async create(recipeData: CreateRecipeDto): Promise<Recipe> {
+    if (!recipeData.difficultyId) {
       throw new Error('Difficulty must be provided');
     }
 
@@ -26,20 +28,24 @@ export class RecipesService {
       throw new Error('At least one recipe ingredient must be provided');
     }
 
-    const difficulty = await this.difficultyRepository.findOneBy({ id: recipeData.difficulty.id });
+    const difficulty = await this.difficultyRepository.findOneBy({ id: recipeData.difficultyId });
 
     if (!difficulty) {
-      throw new Error(`Difficulty with id ${recipeData.difficulty.id} not found`);
+      throw new Error(`Difficulty with id ${recipeData.difficultyId} not found`);
     }
 
     const recipe = this.recipesRepository.create({
       ...recipeData,
+      title: recipeData.title,
+      estimatedTime: recipeData.estimatedTime,
+      image: recipeData.image,
       difficulty,
       instructions: recipeData.instructions,
       recipeIngredients: recipeData.recipeIngredients
     });
 
-    return this.recipesRepository.save(recipe);
+    const createdRecipe: Recipe = await this.recipesRepository.save(recipe);
+    return createdRecipe;
   }
 
   findAll() {
@@ -53,7 +59,7 @@ export class RecipesService {
     });
   }
 
-  update(id: number, updateData: Partial<Recipe>) {
+  update(id: number, updateData: UpdateRecipeDto) {
     return this.recipesRepository.update(id, updateData);
   }
 

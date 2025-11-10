@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { IngredientsModule } from './modules/ingredients/ingredients.module';
 import { AuthModule } from './modules/auth/auth.module';
 import * as Joi from 'joi';
+import { SeedModule } from './database/seeds/seeds.module';
 
 
 @Module({
@@ -35,7 +36,8 @@ import * as Joi from 'joi';
     UsersModule,
     RecipesModule,
     IngredientsModule,
-    AuthModule
+    AuthModule,
+    SeedModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,26 +1,35 @@
 import { Injectable } from '@nestjs/common';
 import { CreateIngredientDto } from './dto/create-ingredient.dto';
 import { UpdateIngredientDto } from './dto/update-ingredient.dto';
+import { Ingredient } from './entities/ingredient.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class IngredientsService {
+
+  constructor(
+    @InjectRepository(Ingredient)
+    private readonly ingredientRepository: Repository<Ingredient>,
+  ) {}
+  
   create(createIngredientDto: CreateIngredientDto) {
-    return 'This action adds a new ingredient';
+    return this.ingredientRepository.save(createIngredientDto);
   }
 
   findAll() {
-    return `This action returns all ingredients`;
+    return this.ingredientRepository.find();
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} ingredient`;
+    return this.ingredientRepository.findOne({ where: { id } });
   }
 
   update(id: number, updateIngredientDto: UpdateIngredientDto) {
-    return `This action updates a #${id} ingredient`;
+    return this.ingredientRepository.update(id, updateIngredientDto);
   }
 
   remove(id: number) {
-    return `This action removes a #${id} ingredient`;
+    return this.ingredientRepository.delete(id);
   }
 }
