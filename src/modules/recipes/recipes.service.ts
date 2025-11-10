@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Recipe } from './entities/recipe.entity';
@@ -6,14 +6,18 @@ import { Difficulty } from 'src/database/entities/difficulty.entity';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
 import { RecipeIngredient } from '../ingredients/entities/recipeIngredients.entity';
+import { UserIngredient } from '../ingredients/entities/userIngredients.entity';
 
 @Injectable()
 export class RecipesService {
+  private readonly logger = new Logger(RecipesService.name);
   constructor(
     @InjectRepository(Recipe)
     private recipesRepository: Repository<Recipe>,
     @InjectRepository(Difficulty)
     private difficultyRepository: Repository<Difficulty>,
+    @InjectRepository(UserIngredient)
+    private userIngredientRepository: Repository<UserIngredient>,
   ) {}
 
   async create(recipeData: CreateRecipeDto): Promise<Recipe> {
@@ -97,10 +101,23 @@ async search(query: string, page = 1, limit = 10) {
     return { data: items, total, page, limit };
   }
 
-async findByIngredient(ingredientId: number, page = 1, limit = 10) {
+async findByIngredient(ingredientId: number, page = 1, limit = 10, userId?: number) { // { changed code: added userId param }
     const id = Number(ingredientId);
     if (!Number.isInteger(id) || id <= 0) {
       return { data: [], total: 0, page, limit };
+    }
+
+    if (userId && Number.isInteger(Number(userId)) && Number(userId) > 0) {
+      try {
+        const ui = this.userIngredientRepository.create({
+          user: { id: Number(userId) } as any,
+          ingredient: { id } as any,
+          searchedAt: new Date(),
+        });
+        await this.userIngredientRepository.save(ui);
+      } catch (err) {
+        this.logger.error(err);
+      }
     }
 
     const qb = this.recipesRepository.createQueryBuilder('recipe')

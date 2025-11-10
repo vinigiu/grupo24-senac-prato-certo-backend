@@ -44,4 +44,7 @@ export class User {
     inverseJoinColumn: { name: 'recipe_id', referencedColumnName: 'id' },
   })
   favoriteRecipes: Recipe[];
+
+  @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
 }

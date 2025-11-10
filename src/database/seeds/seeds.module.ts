@@ -142,6 +142,7 @@ export class SeedModule implements OnModuleInit {
       {
         title: 'Arroz com Feijão',
         estimatedTime: 30,
+        output: 4,
         instructions: riceAndBeansInstructions,
         difficulty: mediumDifficulty,
         recipeIngredients: [
@@ -153,6 +154,7 @@ export class SeedModule implements OnModuleInit {
       {
         title: 'Frango Grelhado',
         estimatedTime: 30,
+        output: 2,
         instructions: chickenInstructions,
         difficulty: easyDifficulty,
         recipeIngredients: [

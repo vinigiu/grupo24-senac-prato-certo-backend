@@ -30,4 +30,7 @@ export class Recipe {
 
   @ManyToMany(() => User, (user) => user.favoriteRecipes)
   favoritedBy: User[];
+
+  @Column({ default: 0 })
+  output: number;
 }
