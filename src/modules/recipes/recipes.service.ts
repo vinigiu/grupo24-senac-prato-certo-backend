@@ -5,6 +5,7 @@ import { Recipe } from './entities/recipe.entity';
 import { Difficulty } from 'src/database/entities/difficulty.entity';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
+import { RecipeIngredient } from '../ingredients/entities/recipeIngredients.entity';
 
 @Injectable()
 export class RecipesService {
@@ -65,5 +66,65 @@ export class RecipesService {
 
   remove(id: number) {
     return this.recipesRepository.delete(id);
+  }
+
+async search(query: string, page = 1, limit = 10) {
+    let q = (query ?? '').toString().trim();
+    if (!q) {
+      return { data: [], total: 0, page, limit };
+    }
+
+    if (q.length > 100) q = q.slice(0, 100);
+
+    const escapeLike = (s: string) => s.replace(/([%_\\])/g, '\\$1');
+    const escaped = escapeLike(q);
+    const qParam = `%${escaped}%`;
+
+    const qb = this.recipesRepository.createQueryBuilder('recipe')
+      .leftJoinAndSelect('recipe.difficulty', 'difficulty')
+      .leftJoinAndSelect('recipe.instructions', 'instruction')
+      .leftJoinAndSelect('recipe.recipeIngredients', 'ri')
+      .leftJoinAndSelect('ri.ingredient', 'ingredient')
+      .where('recipe.title ILIKE :q', { q: qParam })
+      .orderBy('recipe.title', 'ASC');
+
+    const total = await qb.getCount();
+    const items = await qb
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+    return { data: items, total, page, limit };
+  }
+
+async findByIngredient(ingredientId: number, page = 1, limit = 10) {
+    const id = Number(ingredientId);
+    if (!Number.isInteger(id) || id <= 0) {
+      return { data: [], total: 0, page, limit };
+    }
+
+    const qb = this.recipesRepository.createQueryBuilder('recipe')
+      .leftJoinAndSelect('recipe.difficulty', 'difficulty')
+      .leftJoinAndSelect('recipe.instructions', 'instruction')
+      .leftJoinAndSelect('recipe.recipeIngredients', 'ri')
+      .leftJoinAndSelect('ri.ingredient', 'ingredient')
+      .where(qb => {
+        const sub = qb.subQuery()
+          .select('1')
+          .from(RecipeIngredient, 'ri_sub')
+          .where('ri_sub.recipe_id = recipe.id AND ri_sub.ingredient_id = :ingredientId')
+          .getQuery();
+        return `EXISTS ${sub}`;
+      })
+      .setParameter('ingredientId', id)
+      .orderBy('recipe.title', 'ASC');
+
+    const total = await qb.getCount();
+    const items = await qb
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+    return { data: items, total, page, limit };
   }
 }
