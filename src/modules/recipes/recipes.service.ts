@@ -72,7 +72,7 @@ export class RecipesService {
     return this.recipesRepository.delete(id);
   }
 
-async search(query: string, page = 1, limit = 10) {
+  async search(query: string, page = 1, limit = 10) {
     let q = (query ?? '').toString().trim();
     if (!q) {
       return { data: [], total: 0, page, limit };
@@ -101,7 +101,7 @@ async search(query: string, page = 1, limit = 10) {
     return { data: items, total, page, limit };
   }
 
-async findByIngredient(ingredientId: number, page = 1, limit = 10, userId?: number) { // { changed code: added userId param }
+  async findByIngredient(ingredientId: number, page = 1, limit = 10, userId?: number) {
     const id = Number(ingredientId);
     if (!Number.isInteger(id) || id <= 0) {
       return { data: [], total: 0, page, limit };
