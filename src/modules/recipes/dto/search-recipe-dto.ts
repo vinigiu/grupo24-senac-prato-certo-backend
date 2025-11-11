@@ -1,5 +1,6 @@
-import { IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsInt, IsNumberString, IsOptional, IsString, Min } from 'class-validator';
 import { Type } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class SearchRecipeDto {
   @IsString()
@@ -19,20 +20,21 @@ export class SearchRecipeDto {
 }
 
 export class SearchByIngredientDto {
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  ingredientId: number;
+  @ApiProperty({
+    description:
+      'IDs dos ingredientes separados por vírgula (ex: "1,2,3") ou múltiplos parâmetros (ingredientIds=1&ingredientIds=2)',
+    example: '1,2,3',
+  })
+  @IsString({ each: true })
+  ingredientIds: string | string[];
 
+  @ApiProperty({ required: false, example: 1 })
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  page?: number = 1;
+  @IsNumberString()
+  page?: number;
 
+  @ApiProperty({ required: false, example: 10 })
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  limit?: number = 10;
+  @IsNumberString()
+  limit?: number;
 }

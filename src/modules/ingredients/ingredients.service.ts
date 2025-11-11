@@ -53,4 +53,29 @@ export class IngredientsService {
       searchedAt: i.searchedAt?.toISOString?.() ?? i.searchedAt,
     }));
   }
+
+  async search(query: string, page = 1, limit = 10) {
+    let q = (query ?? '').toString().trim();
+    if (!q) {
+      return { data: [], total: 0, page, limit };
+    }
+
+    if (q.length > 100) q = q.slice(0, 100);
+
+    const escapeLike = (s: string) => s.replace(/([%_\\])/g, '\\$1');
+    const escaped = escapeLike(q);
+    const qParam = `%${escaped}%`;
+
+    const qb = this.ingredientRepository.createQueryBuilder('ingredient')
+      .where('ingredient.name ILIKE :q', { q: qParam })
+      .orderBy('ingredient.name', 'ASC');
+
+    const total = await qb.getCount();
+    const items = await qb
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+    return { data: items, total, page, limit };
+  }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -7,6 +7,7 @@ import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation
 import { FavoriteRecipeDto } from './dto/response/favorite-recipe-response.dto';
 import { UserResponseDto } from './dto/response/user-response.dto';
 import { PaginatedUsersDto } from './dto/response/paginated-users-response.dto';
+import type { Request } from 'express';
 
 @ApiTags('Users')
 @Controller('users')
@@ -30,13 +31,13 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get(':id')
+  @Get('me')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get user by id' })
-  @ApiParam({ name: 'id', required: true })
+  @ApiOperation({ summary: 'Get user data' })
   @ApiOkResponse({ type: UserResponseDto })
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  findOne(@Req() req: Request) {
+    const userId = (req as any)?.user?.id;
+    return this.usersService.findOne(userId);
   }
 
   @UseGuards(JwtAuthGuard)

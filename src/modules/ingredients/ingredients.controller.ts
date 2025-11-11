@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Req, Logger } from '@nestjs/common';
 import { IngredientsService } from './ingredients.service';
 import { CreateIngredientDto } from './dto/create-ingredient.dto';
 import { UpdateIngredientDto } from './dto/update-ingredient.dto';
@@ -8,12 +8,14 @@ import { IngredientResponseDto } from './dto/response/ingredient-response.dto';
 import { PaginatedIngredientsDto } from './dto/response/paginated-ingredient-response.dto';
 import { UserIngredientResponseDto } from './dto/response/user-ingredient-response.dto';
 import type { Request } from 'express';
+import { SearchIngredientDto } from './dto/search-ingredient-dto';
 
 @ApiTags('Ingredients')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('ingredients')
 export class IngredientsController {
+  private readonly logger = new Logger(IngredientsController.name);
   constructor(private readonly ingredientsService: IngredientsService) {}
 
   @Post()
@@ -39,6 +41,16 @@ export class IngredientsController {
     return this.ingredientsService.findRecentUserIngredients(Number(userId));
   }
 
+  @Get('search')
+  @ApiOperation({ summary: 'Search ingredients by name (paginated)' })
+  @ApiOkResponse({ type: PaginatedIngredientsDto })
+  search(@Query() query: SearchIngredientDto) {
+    this.logger.log(`Searching ingredients with query: ${query.query}`);
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    return this.ingredientsService.search(query.query, page, limit);
+  }
+  
   @Get(':id')
   @ApiOperation({ summary: 'Get ingredient by id' })
   @ApiParam({ name: 'id', required: true })
@@ -46,6 +58,7 @@ export class IngredientsController {
   findOne(@Param('id') id: string) {
     return this.ingredientsService.findOne(+id);
   }
+
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update ingredient' })

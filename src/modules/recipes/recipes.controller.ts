@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Req, Logger } from '@nestjs/common';
 import { RecipesService } from './recipes.service';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
@@ -14,6 +14,7 @@ import type { Request } from 'express';
 @UseGuards(JwtAuthGuard)
 @Controller('recipes')
 export class RecipesController {
+  private readonly logger = new Logger(RecipesController.name);
   constructor(private readonly recipesService: RecipesService) {}
 
   @Post()
@@ -35,19 +36,31 @@ export class RecipesController {
   @ApiOperation({ summary: 'Search recipes by title (paginated)' })
   @ApiOkResponse({ type: PaginatedRecipesDto })
   search(@Query() query: SearchRecipeDto) {
+    this.logger.log(`Searching recipes with query: ${query.query}`);
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
     return this.recipesService.search(query.query, page, limit);
   }
 
   @Get('by-ingredient')
-  @ApiOperation({ summary: 'List recipes that contain a given ingredient (paginated)' })
+  @ApiOperation({ summary: 'List recipes that contain given ingredients (paginated)' })
   @ApiOkResponse({ type: PaginatedRecipesDto })
   filterByIngredient(@Query() query: SearchByIngredientDto, @Req() req: Request) {
     const userId = (req as any)?.user?.id;
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
-    return this.recipesService.findByIngredient(query.ingredientId, page, limit, userId);
+
+    let ingredientIds: number[] = [];
+    if (typeof query.ingredientIds === 'string') {
+      ingredientIds = query.ingredientIds
+        .split(',')
+        .map(id => Number(id.trim()))
+        .filter(id => !isNaN(id) && id > 0);
+    } else if (Array.isArray(query.ingredientIds)) {
+      ingredientIds = query.ingredientIds.map(Number).filter(id => !isNaN(id) && id > 0);
+    }
+
+    return this.recipesService.findByIngredients(ingredientIds, page, limit, userId);
   }
 
   @Get(':id')

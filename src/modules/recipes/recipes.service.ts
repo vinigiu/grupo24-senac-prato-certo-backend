@@ -101,22 +101,27 @@ export class RecipesService {
     return { data: items, total, page, limit };
   }
 
-  async findByIngredient(ingredientId: number, page = 1, limit = 10, userId?: number) {
-    const id = Number(ingredientId);
-    if (!Number.isInteger(id) || id <= 0) {
+  async findByIngredients(ingredientIds: number[], page = 1, limit = 10, userId?: number) {
+    const ids = (ingredientIds || [])
+      .map(Number)
+      .filter(id => Number.isInteger(id) && id > 0);
+
+    if (ids.length === 0) {
       return { data: [], total: 0, page, limit };
     }
 
     if (userId && Number.isInteger(Number(userId)) && Number(userId) > 0) {
       try {
-        const ui = this.userIngredientRepository.create({
-          user: { id: Number(userId) } as any,
-          ingredient: { id } as any,
-          searchedAt: new Date(),
-        });
-        await this.userIngredientRepository.save(ui);
+        const userIngredients = ids.map(id => 
+          this.userIngredientRepository.create({
+            user: { id: Number(userId) } as any,
+            ingredient: { id } as any,
+            searchedAt: new Date(),
+          })
+        );
+        await this.userIngredientRepository.save(userIngredients);
       } catch (err) {
-        this.logger.error(err);
+        this.logger.error('Erro ao salvar histórico de ingredientes:', err);
       }
     }
 
@@ -125,15 +130,7 @@ export class RecipesService {
       .leftJoinAndSelect('recipe.instructions', 'instruction')
       .leftJoinAndSelect('recipe.recipeIngredients', 'ri')
       .leftJoinAndSelect('ri.ingredient', 'ingredient')
-      .where(qb => {
-        const sub = qb.subQuery()
-          .select('1')
-          .from(RecipeIngredient, 'ri_sub')
-          .where('ri_sub.recipe_id = recipe.id AND ri_sub.ingredient_id = :ingredientId')
-          .getQuery();
-        return `EXISTS ${sub}`;
-      })
-      .setParameter('ingredientId', id)
+      .where('ri.ingredient_id IN (:...ingredientIds)', { ingredientIds: ids })
       .orderBy('recipe.title', 'ASC');
 
     const total = await qb.getCount();
@@ -143,5 +140,5 @@ export class RecipesService {
       .getMany();
 
     return { data: items, total, page, limit };
-  }
+  } 
 }
