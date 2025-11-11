@@ -77,6 +77,10 @@ Para visualizar os logs da aplicação em tempo real:
 sudo docker logs -f prato_certo_app
 ```
 
+## Documentaçâo Swagger
+- Após ter a aplicação rodando localmente, é possível acessar a documentação swagger através do endpoint:
+👉 http://localhost:3000/api
+
 ## 📡 Endpoints principais (exemplos)
 
 | Método | Rota         | Descrição                        |
